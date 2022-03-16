@@ -5,57 +5,58 @@ const int MAX = 1e5 + 5;
 typedef long long ll;
 int n, q;
 ll a[MAX];
-struct SegmentTree{
+struct SegmentTree {
     int l;
     int r;
-    ll sum;
-    ll add;
+    ll dat; // 数据
+    ll mark; // 延迟标记
 #define l(x) tree[x].l
 #define r(x) tree[x].r
-#define sum(x) tree[x].sum
-#define add(x) tree[x].add
+#define dat(x) tree[x].dat
+#define mark(x) tree[x].mark
 }tree[MAX << 2];
+
 void build(int p, int l , int r)
 {
     l(p) = l; r(p) = r;
-    if(l == r){
-        sum(p) = a[l];
+    if(l == r) {
+        dat(p) = a[l];
         return ;
     }
     int mid = (l + r) / 2;
     build(p * 2, l, mid);
     build(p * 2 + 1, mid + 1, r);
-    sum(p) = sum(p * 2) + sum(p * 2 + 1);
+    dat(p) = dat(p * 2) + dat(p * 2 + 1);
 }
 
 void spread(int p)
 {
-    if(add(p)){
-        sum(p * 2) = add(p) * (r(p * 2) - l(p * 2) + 1);
-        sum(p * 2 + 1) = add(p) * (r(p * 2 + 1) - l(p * 2 + 1) + 1);
-        add(p * 2) = add(p);
-        add(p * 2 + 1) = add(p);
-        add(p) = 0;
+    if(mark(p)) {
+        dat(p * 2) = mark(p) * (r(p * 2) - l(p * 2) + 1);
+        dat(p * 2 + 1) = mark(p) * (r(p * 2 + 1) - l(p * 2 + 1) + 1);
+        mark(p * 2) = mark(p);
+        mark(p * 2 + 1) = mark(p);
+        mark(p) = 0;
     }
 }
 
 void change(int p, int l, int r, int d)
 {
-    if(l <= l(p) && r >= r(p)){
-        sum(p) = (ll)d * (r(p) - l(p) + 1);
-        add(p) = d;
+    if(l <= l(p) && r >= r(p)) { // 完全覆盖
+        dat(p) = (ll)d * (r(p) - l(p) + 1); // 更新节点信息
+        mark(p) += d; // 给节点打上延迟标记
         return ;
     }
-    spread(p);
+    spread(p);  // 下传延迟标记
     int mid = (l(p) + r(p)) / 2;
     if(l <= mid)    change(p * 2, l, r, d);
     if(r > mid) change(p * 2 + 1, l, r, d);
-    sum(p) = sum(p * 2) + sum(p * 2 + 1);
+    dat(p) = dat(p * 2) + dat(p * 2 + 1);
 }
 
 ll ask(int p, int l, int r)
 {
-    if(l <= l(p) && r >= r(p))  return sum(p);
+    if(l <= l(p) && r >= r(p))  return dat(p);
     spread(p);
     int mid = (l(p) + r(p)) / 2;
     ll val = 0;
