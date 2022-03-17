@@ -39,7 +39,6 @@ void spread(int p)
         mark(p) = 0;
     }
 }
-
 void change(int p, int l, int r, int d)
 {
     if(l <= l(p) && r >= r(p)) { // 完全覆盖
